@@ -9,7 +9,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class FindAverageAgent extends Agent {
 
@@ -26,51 +25,27 @@ public class FindAverageAgent extends Agent {
     private String parent;
     private boolean isReadyForAcceptance;
 
-//    public FindAverageAgent() {
-//        super();
-//        Object[] args = getArguments();
-//        neighbours = new String[args.length];
-//        for (int i = 0; i < args.length; i++) {
-//            neighbours[i] = args[i].toString();
-//        }
-//    }
-
-//    private void clear() {
-//        removeBehaviour(sendState);
-//        removeBehaviour(acceptValues);
-//        removeBehaviour(rejectRequests);
-//    }
-
     private void becomeInitial() {
-//        System.out.println("Agent " + getAID().getLocalName() + " becomeInitial");
         addBehaviour(new InitialBehaviour());
-//        addBehaviour(acceptValues);
-//        addBehaviour(sendState);
     }
 
     private void becomeSender() {
-        System.out.println("Agent " + getAID().getLocalName() + " becomeSender");
         isReadyForAcceptance = false;
         addBehaviour(new Send());
         addBehaviour(rejectRequests);
     }
 
     private void stopSender() {
-//        System.out.println("Agent " + getAID().getLocalName() + " stopSender");
         removeBehaviour(rejectRequests);
     }
 
     private void becomeReceiver() {
-        System.out.println("Agent " + getAID().getLocalName() + " becomeReceiver");
         isReadyForAcceptance = true;
         addBehaviour(new Receive());
     }
 
     private void becomePassive() {
-        System.out.println("Agent " + getAID().getLocalName() + " becomePASSIVE");
         isReadyForAcceptance = false;
-//        removeBehaviour(sendState);
-//        removeBehaviour(acceptValues);
         addBehaviour(new Passive());
     }
 
@@ -153,7 +128,6 @@ public class FindAverageAgent extends Agent {
         private ACLMessage reply;
 
         private void stopWork(FindAverageAgent agent) {
-//            agent.removeBehaviour(this);
             state = FINAL_STATE;
         }
 
@@ -164,7 +138,6 @@ public class FindAverageAgent extends Agent {
                     ACLMessage msg = this.myAgent.receive();
                     if (msg != null) {
                         String conversationId = msg.getConversationId();
-                        System.out.println("Agent " + myAgent.getAID().getLocalName() + " (passive) received " + conversationId + " message from Agent " + msg.getSender().getLocalName());
                         FindAverageAgent myAgent = (FindAverageAgent) this.myAgent;
                         if (conversationId.equals("Delegate")) {
                             if (!myAgent.neighbours.isEmpty()) {
@@ -305,8 +278,6 @@ public class FindAverageAgent extends Agent {
                     // Отправляем предложение стать корнем
 
                     FindAverageAgent myAgent = (FindAverageAgent) this.myAgent;
-                    System.out.println("Agent " + myAgent.getAID().getLocalName() + ": indexOfChild = " + indexOfChild
-                            + ", children.size = " + myAgent.children.size());
                     if (indexOfChild < myAgent.children.size()) {
                         ACLMessage propose = new ACLMessage(ACLMessage.REQUEST);
                         propose.addReceiver(new AID(children.get(indexOfChild++), AID.ISLOCALNAME));
@@ -318,11 +289,6 @@ public class FindAverageAgent extends Agent {
                         state = PROCESS_DELEGATION;
                     } else {
                         // Не осталось детей, готовых стать корнем
-                        System.out.println("Agent " + myAgent.getAID().getLocalName() + " disconfirmed offer from ");
-                        jade.util.leap.Iterator it = reply.getAllReceiver();
-                        while (it.hasNext()) {
-                            System.out.println(it.next());
-                        }
 
                         reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
                         myAgent.send(reply);
@@ -403,13 +369,11 @@ public class FindAverageAgent extends Agent {
                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST)
             ));
             if (msg != null) {
-//                System.out.println("Agent " + myAgent.getAID().getLocalName() + " got request to reject");
                 ACLMessage reply = msg.createReply();
                 reply.setPerformative(ACLMessage.CANCEL);
                 reply.setContent("Sending");
                 myAgent.send(reply);
             } else {
-//                System.out.println("Agent " + myAgent.getAID().getLocalName() + " waiting for request to reject");
                 block();
             }
         }
@@ -445,12 +409,10 @@ public class FindAverageAgent extends Agent {
                         request.setConversationId("Join");
                         request.setReplyWith("request" + System.currentTimeMillis());
                         myAgent.send(request);
-                        System.out.println("Agent " + myAgent.getAID().getLocalName() + " sent request to " + neighbours.get(0));
 
                         state = PROCESS_ANSWER;
                     } else {
                         // Некому отправлять запрос, изменяем корень дерева
-                        System.out.println("Agent " + myAgent.getAID().getLocalName() + " has NOT neighbours");
 
                         state = TRY_TO_DELEGATE;
                     }
@@ -502,9 +464,6 @@ public class FindAverageAgent extends Agent {
                                 break;
                             }
                             case ACLMessage.CANCEL: {
-                                System.out.println("Agent " + myAgent.getAID().getLocalName() +
-                                        " received CANCEL (" + msg.getContent() + ") from " + msg.getSender().getLocalName());
-
                                 FindAverageAgent myAgent = (FindAverageAgent) this.myAgent;
                                 String reason = msg.getContent();
                                 if (reason.equals("Sending")) {
@@ -526,7 +485,6 @@ public class FindAverageAgent extends Agent {
                             }
                         }
                     } else {
-                        System.out.println("Agent " + myAgent.getAID().getLocalName() + " waiting for answer");
                         block();
                     }
 
@@ -605,8 +563,6 @@ public class FindAverageAgent extends Agent {
             ACLMessage msg = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             FindAverageAgent myAgent = (FindAverageAgent)this.myAgent;
             while (msg != null) {
-                System.out.println("Agent " + getAID().getLocalName() + " received request from Agent " + msg.getSender().getLocalName());
-
                 // Убираем отправителя из соседей
                 myAgent.neighbours.remove(msg.getSender().getLocalName());
                 // Добавляем отправителя в детей
@@ -626,7 +582,6 @@ public class FindAverageAgent extends Agent {
                 msg = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             }
             becomeInitial();
-//            myAgent.addBehaviour(new InitialBehaviour());
         }
     }
 
